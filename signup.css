@@ -1,0 +1,42 @@
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+}
+
+.container {
+  width: 350px;
+  margin: 80px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+}
+
+input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: #ff5a5f;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.otp-group {
+  display: flex;
+  gap: 5px;
+}
+
+.otp-input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+}

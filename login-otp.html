@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify OTP</title>
+</head>
+<body>
+
+<h2>Enter OTP</h2>
+
+<input id="otp" placeholder="Enter OTP"><br><br>
+
+<button onclick="verifyOtp()">Verify</button>
+
+<script src="js/auth.js"></script>
+<script src="js/login.js"></script>
+<script>
+
+function verifyOtp() {
+
+  const otp = document.getElementById("otp").value;
+  const target = localStorage.getItem("loginTarget");
+  const type = localStorage.getItem("loginType");
+
+  let url = "";
+
+  if (type === "email") {
+    url = `${BASE_URL}/login/email/verify`;
+  } else {
+    url = `${BASE_URL}/login/phone/verify`;
+  }
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ target, otp })
+  })
+  .then(res => res.json())
+  .then(data => {
+    localStorage.setItem("token", data.sessionToken);
+    alert("Login Successful");
+    window.location.href = "dashboard.html";
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Invalid OTP");
+  });
+}
+
+</script>
+
+</body>
+</html>

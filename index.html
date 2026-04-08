@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ananthala — Sign In</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Extra page-specific styles */
+    .method-tabs { margin-bottom: 0; }
+
+    .otp-section-wrapper {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+      opacity: 0;
+    }
+    .otp-section-wrapper.open {
+      max-height: 400px;
+      opacity: 1;
+    }
+
+    .sent-to-display {
+      font-size: 13px;
+      color: var(--ink-muted);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .sent-to-display strong { color: var(--ink-soft); font-weight: 500; }
+
+    .input-row { display: flex; gap: 12px; }
+    .input-row .form-group { flex: 1; }
+
+    .info-box {
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,80,42,0.15);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 18px;
+      line-height: 1.5;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .info-box svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+  <!-- Brand -->
+  <div class="brand">
+    <a class="brand-logo" href="#">
+      <div class="brand-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#f8f5f0" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 3C8 3 5 6 5 10c0 5 7 11 7 11s7-6 7-11c0-4-3-7-7-7z"/>
+          <circle cx="12" cy="10" r="2.5" stroke="#f8f5f0" stroke-width="1.8"/>
+        </svg>
+      </div>
+      <span class="brand-name">Authenticator</span>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div class="card" id="authCard">
+    <div class="card-header">
+      <h1 class="card-title" id="cardTitle">Welcome back</h1>
+      <p class="card-subtitle" id="cardSubtitle">Sign in to your account using OTP</p>
+    </div>
+
+    <div class="card-body">
+      <!-- Global alert -->
+      <div id="globalAlert"></div>
+      <!-- Processing indicator -->
+      <div id="processingBar"></div>
+
+      <!-- ══════ LOGIN VIEW ══════ -->
+      <div class="page active" id="pageLogin">
+        <!-- Method tabs -->
+        <div class="tab-group method-tabs">
+          <button class="tab-btn active" id="tabEmail" onclick="switchMethod('email')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Email OTP
+          </button>
+          <button class="tab-btn" id="tabPhone" onclick="switchMethod('phone')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 12 19.79 19.79 0 011 3.18 2 2 0 012.99 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            Phone OTP
+          </button>
+        </div>
+
+        <!-- ── EMAIL METHOD ── -->
+        <div id="emailMethod">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <div class="input-wrap input-with-btn">
+              <div class="input-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <input type="email" id="loginEmail" placeholder="you@example.com"
+                onkeydown="if(event.key==='Enter') sendLoginEmailOtp()" />
+              <button class="btn-inline" id="btnSendEmailOtp" onclick="sendLoginEmailOtp()">Send OTP</button>
+            </div>
+          </div>
+
+          <!-- OTP section (slides in) -->
+          <div class="otp-section-wrapper" id="emailOtpWrapper">
+            <div class="otp-sent-badge">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              OTP sent from noreply@abhishek.com
+            </div>
+            <div class="sent-to-display" id="emailSentTo"></div>
+
+            <div class="otp-group" id="emailOtpGroup">
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+            </div>
+
+            <div class="resend-row">
+              <span class="resend-timer" id="emailResendTimer"></span>
+              <button class="resend-btn" id="btnResendEmailOtp" onclick="sendLoginEmailOtp(true)" disabled>
+                Resend OTP
+              </button>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <button class="btn btn-primary" id="btnVerifyEmailOtp" onclick="verifyLoginEmailOtp()">
+                Verify & Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PHONE METHOD ── -->
+        <div id="phoneMethod" style="display:none">
+          <div class="form-group">
+            <label for="loginPhone">Mobile number</label>
+            <div class="input-wrap input-with-btn">
+              <div class="input-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 12 19.79 19.79 0 011 3.18 2 2 0 012.99 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+              </div>
+              <span class="phone-prefix">+91</span>
+              <input type="tel" id="loginPhone" class="phone-input" placeholder="98765 43210"
+                maxlength="10" onkeydown="if(event.key==='Enter') sendLoginPhoneOtp()" />
+              <button class="btn-inline" id="btnSendPhoneOtp" onclick="sendLoginPhoneOtp()">Send OTP</button>
+            </div>
+          </div>
+
+          <!-- Phone OTP section -->
+          <div class="otp-section-wrapper" id="phoneOtpWrapper">
+            <div class="otp-sent-badge">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              OTP sent via SMS
+            </div>
+            <div class="sent-to-display" id="phoneSentTo"></div>
+
+            <div class="otp-group" id="phoneOtpGroup">
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+            </div>
+
+            <div class="resend-row">
+              <span class="resend-timer" id="phoneResendTimer"></span>
+              <button class="resend-btn" id="btnResendPhoneOtp" onclick="sendLoginPhoneOtp(true)" disabled>
+                Resend OTP
+              </button>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <button class="btn btn-primary" id="btnVerifyPhoneOtp" onclick="verifyLoginPhoneOtp()">
+                Verify & Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider">or</div>
+        <div class="switch-mode">
+          New here? <a href="signup.html">Create an account →</a>
+        </div>
+      </div>
+
+      <!-- ══════ SIGNUP VIEW ══════ -->
+      <div class="page" id="pageSignup">
+        <div class="tab-group">
+          <button class="tab-btn active" id="tabSignupEmail" onclick="switchSignupMethod('email')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            via Email
+          </button>
+          <button class="tab-btn" id="tabSignupPhone" onclick="switchSignupMethod('phone')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 12 19.79 19.79 0 011 3.18 2 2 0 012.99 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            via Phone
+          </button>
+        </div>
+
+        <!-- ── SIGNUP EMAIL ── -->
+        <div id="signupEmailMethod">
+          <!-- Step 1: Enter details -->
+          <div id="signupEmailStep1">
+            <div class="info-box">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              A verification email will be sent from <strong>noreply@abhishek.com</strong>. Both email and phone are required.
+            </div>
+
+            <div class="form-group">
+              <label for="signupName">Full name</label>
+              <div class="input-wrap">
+                <div class="input-icon">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <input type="text" id="signupName" placeholder="Your full name" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="signupEmail">Email address</label>
+              <div class="input-wrap input-with-btn">
+                <div class="input-icon">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                </div>
+                <input type="email" id="signupEmail" placeholder="you@example.com" />
+                <button class="btn-inline" id="btnSendSignupEmailOtp" onclick="sendSignupEmailOtp()">Send OTP</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="signupPhone">Mobile number <span style="color:var(--accent)">*</span></label>
+              <div class="input-wrap">
+                <div class="input-icon">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 12 19.79 19.79 0 011 3.18 2 2 0 012.99 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                  </svg>
+                </div>
+                <span class="phone-prefix">+91</span>
+                <input type="tel" id="signupPhone" class="phone-input" placeholder="98765 43210" maxlength="10" />
+              </div>
+            </div>
+
+            <!-- Email OTP verification (inline) -->
+            <div class="otp-section-wrapper" id="signupEmailOtpWrapper">
+              <div class="section-title">Verify your email</div>
+              <div class="otp-sent-badge">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                OTP sent from noreply@abhishek.com
+              </div>
+              <div class="sent-to-display" id="signupEmailSentTo"></div>
+
+              <div class="otp-group" id="signupEmailOtpGroup">
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              </div>
+
+              <div class="resend-row">
+                <span class="resend-timer" id="signupEmailResendTimer"></span>
+                <button class="resend-btn" id="btnResendSignupEmailOtp" onclick="sendSignupEmailOtp(true)" disabled>Resend</button>
+              </div>
+
+              <div id="emailVerifiedBadge" style="display:none; margin-top:12px;">
+                <div class="alert alert-success">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>Email verified successfully!</span>
+                </div>
+              </div>
+
+              <div id="signupEmailOtpActions" style="margin-top:16px;">
+                <button class="btn btn-accent" onclick="verifySignupEmailOtp()">Verify Email OTP</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px;" id="signupEmailSubmitWrap" >
+              <button class="btn btn-primary" id="btnCreateAccountEmail" onclick="createAccountEmail()" >
+                Create Account
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SIGNUP PHONE ── -->
+        <div id="signupPhoneMethod" style="display:none">
+          <div class="info-box">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            Both phone and email are mandatory. Verify your mobile via OTP to proceed.
+          </div>
+
+          <div class="form-group">
+            <label for="signupPhoneName">Full name</label>
+            <div class="input-wrap">
+              <div class="input-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <input type="text" id="signupPhoneName" placeholder="Your full name" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="signupPhoneNum">Mobile number</label>
+            <div class="input-wrap input-with-btn">
+              <div class="input-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 12 19.79 19.79 0 011 3.18 2 2 0 012.99 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+              </div>
+              <span class="phone-prefix">+91</span>
+              <input type="tel" id="signupPhoneNum" class="phone-input" placeholder="98765 43210" maxlength="10" />
+              <button class="btn-inline" id="btnSendSignupPhoneOtp" onclick="sendSignupPhoneOtp()">Send OTP</button>
+            </div>
+          </div>
+
+          <!-- Phone OTP -->
+          <div class="otp-section-wrapper" id="signupPhoneOtpWrapper">
+            <div class="otp-sent-badge">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              OTP sent via SMS
+            </div>
+            <div class="sent-to-display" id="signupPhoneSentTo"></div>
+
+            <div class="otp-group" id="signupPhoneOtpGroup">
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+            </div>
+
+            <div class="resend-row">
+              <span class="resend-timer" id="signupPhoneResendTimer"></span>
+              <button class="resend-btn" id="btnResendSignupPhoneOtp" onclick="sendSignupPhoneOtp(true)" disabled>Resend</button>
+            </div>
+
+            <div id="phoneVerifiedBadge" style="display:none; margin-top:12px;">
+              <div class="alert alert-success">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Phone verified successfully!</span>
+              </div>
+            </div>
+
+            <div id="signupPhoneOtpActions" style="margin-top:16px;">
+              <button class="btn btn-accent" onclick="verifySignupPhoneOtp()">Verify Phone OTP</button>
+            </div>
+          </div>
+
+          <!-- Email field after phone verified -->
+          <div id="signupPhoneEmailSection" style="display:none; margin-top:18px;">
+            <div class="section-title">Add your email</div>
+            <div class="form-group">
+              <label for="signupPhoneEmail">Email address <span style="color:var(--accent)">*</span></label>
+              <div class="input-wrap">
+                <div class="input-icon">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                </div>
+                <input type="email" id="signupPhoneEmail" placeholder="you@example.com" />
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btnCreateAccountPhone" onclick="createAccountPhone()">
+              Create Account
+            </button>
+          </div>
+        </div>
+
+        <div class="divider">or</div>
+        <div class="switch-mode">
+          Already have an account? <a onclick="showPage('pageLogin')">Sign in →</a>
+        </div>
+      </div>
+
+      <!-- ══════ SUCCESS VIEW ══════ -->
+      <div class="page" id="pageSuccess">
+        <div style="text-align:center; padding: 16px 0 8px;">
+          <div style="width:72px;height:72px;background:var(--success-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="var(--success)" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h2 style="font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:8px;" id="successTitle">Signed in!</h2>
+          <p style="color:var(--ink-muted);font-size:14px;margin-bottom:28px;" id="successMsg">You've successfully signed in to your account.</p>
+          <a href="dashboard.html" class="btn btn-primary" style="display:inline-flex;width:auto;padding:12px 32px;">
+            Go to Dashboard →
+          </a>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /card -->
+
+  <div class="footer-note">
+    By continuing, you agree to our <a href="#" style="color:var(--accent)">Terms of Service</a>
+    and <a href="#" style="color:var(--accent)">Privacy Policy</a>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+
+</body>
+</html>

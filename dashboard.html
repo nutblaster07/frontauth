@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ananthala — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { align-items: flex-start; padding: 0; }
+
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 60px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .topbar-brand-icon {
+      width: 32px; height: 32px;
+      background: var(--ink); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+    .user-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 14px 6px 8px;
+      background: var(--paper-warm);
+      border-radius: 20px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+
+    .avatar {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #fff; font-weight: 600;
+    }
+
+    .logout-btn {
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      font-size: 13px;
+      color: var(--ink-muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--paper-warm); color: var(--ink); }
+
+    .main {
+      padding: 92px 32px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .welcome-banner {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 40px;
+      color: #fff;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.2;
+    }
+
+    .welcome-banner h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .welcome-banner p {
+      font-size: 15px;
+      opacity: 0.7;
+      position: relative;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .stat-label { font-size: 12px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 10px; }
+    .stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink); }
+
+    .info-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .info-card h3 { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 20px; }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row-label { color: var(--ink-muted); font-weight: 500; }
+    .info-row-value { color: var(--ink); font-weight: 400; }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 0 16px; }
+      .main { padding: 84px 16px 40px; }
+      .welcome-banner { padding: 28px 24px; }
+      .welcome-banner h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body style="background:var(--paper); display:block;">
+
+<header class="topbar">
+  <a class="topbar-brand" href="index.html">
+    <div class="topbar-brand-icon">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#f8f5f0" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3C8 3 5 6 5 10c0 5 7 11 7 11s7-6 7-11c0-4-3-7-7-7z"/>
+        <circle cx="12" cy="10" r="2.5"/>
+      </svg>
+    </div>
+    Authenticator
+  </a>
+  <div class="topbar-actions">
+    <div class="user-pill">
+      <div class="avatar" id="avatarInitials">?</div>
+      <span id="topbarName">Loading…</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="welcome-banner">
+    <h1 id="welcomeMsg">Welcome!</h1>
+    <p id="welcomeSub">You're successfully signed in to your Authenticator account.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Account status</div>
+      <div class="stat-value" style="font-size:20px; color:var(--success);">✓ Active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Member since</div>
+      <div class="stat-value" id="memberSince" style="font-size:18px;">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Auth method</div>
+      <div class="stat-value" id="authMethod" style="font-size:16px;">OTP</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>Account details</h3>
+    <div class="info-row">
+      <span class="info-row-label">Full name</span>
+      <span class="info-row-value" id="infoName">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row-label">Email</span>
+      <span class="info-row-value" id="infoEmail">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row-label">Mobile</span>
+      <span class="info-row-value" id="infoPhone">—</span>
+    </div>
+  </div>
+</main>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+
+<script>
+
+async function checkAuth() {
+
+  const token = localStorage.getItem("token");
+
+  // ❌ No token → redirect
+  if (!token) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  try {
+    // ✅ verify with backend
+    const res = await fetch("https://auth1-44nj.onrender.com/api/auth/me", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    if (!res.ok) throw new Error();
+
+    const user = await res.json();
+
+    renderUser(user);
+
+  } catch (err) {
+    // ❌ invalid/fake token
+    localStorage.clear();
+    window.location.replace("login.html");
+  }
+}
+
+// 🎯 render user data
+function renderUser(user) {
+
+  const name = user.name || "User";
+
+  const initials = name
+    .split(" ")
+    .map(w => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  document.getElementById("avatarInitials").textContent = initials;
+  document.getElementById("topbarName").textContent = name;
+  document.getElementById("welcomeMsg").textContent =
+    `Welcome, ${name.split(" ")[0]}!`;
+
+  document.getElementById("infoName").textContent = name;
+  document.getElementById("infoEmail").textContent = user.email || "—";
+  document.getElementById("infoPhone").textContent = user.phone || "—";
+}
+
+// 🔓 logout
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+// 🚀 run on load
+document.addEventListener("DOMContentLoaded", checkAuth);
+
+
+</script>
+</body>
+</html>
