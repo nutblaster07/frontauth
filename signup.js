@@ -100,7 +100,7 @@ async function verifySignupPhoneOtp() {
     showAlert("globalAlert", "success", "Account created! Redirecting...");
 
     setTimeout(() => {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }, 1500);
 
   } catch (err) {
