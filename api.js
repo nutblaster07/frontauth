@@ -1,4 +1,4 @@
-const BASE_URL = "https://auth1-44nj.onrender.com/api/auth";
+const BASE_URL = "https://auth2-x9xb.onrender.com/api/auth";
 
 const API = {
   sendEmailOtp: (email) =>
